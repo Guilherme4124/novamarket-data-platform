@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: novamarket
+    database: novamarket-data-platform
+    schema: novamarket_analytics
+
+    tables:
+      - name: silver_vendas

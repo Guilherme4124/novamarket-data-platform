@@ -1,0 +1,23 @@
+# Variáveis e credenciais
+.env
+*.env
+credentials/
+*.json
+
+# Ambiente Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# dbt
+target/
+logs/
+dbt_packages/
+
+# IDE
+.vscode/
+
+# Windows
+Thumbs.db
+Desktop.ini

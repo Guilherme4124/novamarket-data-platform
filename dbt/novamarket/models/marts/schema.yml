@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: fato_vendas
+    description: "Tabela fato contendo os eventos de vendas da NovaMarket."
+
+    columns:
+      - name: id_venda
+        tests:
+          - not_null
+
+      - name: id_cliente
+        tests:
+          - not_null
+
+      - name: id_produto
+        tests:
+          - not_null
+
+      - name: quantidade
+        tests:
+          - not_null
+
+      - name: valor_total
+        tests:
+          - not_null
+
+  - name: dim_data
+    description: "Dimensão de datas derivada das vendas."
+
+    columns:
+      - name: data_venda
+        tests:
+          - not_null
+          - unique

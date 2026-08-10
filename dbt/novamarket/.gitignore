@@ -1,0 +1,23 @@
+# Credenciais
+.env
+*.env
+credentials/
+*.json
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# dbt
+target/
+logs/
+dbt_packages/
+
+# IDE
+.vscode/
+
+# Windows
+Thumbs.db
+Desktop.ini

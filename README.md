@@ -2,46 +2,114 @@
 
 ## 📖 Sobre o Projeto
 
-A NovaMarket Data Platform é uma plataforma moderna de Engenharia de Dados desenvolvida para simular um ambiente corporativo de grande porte.
+A NovaMarket Data Platform é um projeto de Engenharia de Dados desenvolvido para simular uma arquitetura moderna de processamento e análise de dados.
 
-O objetivo é construir uma arquitetura completa de dados utilizando as principais tecnologias do mercado, desde a ingestão até a disponibilização para Analytics e Machine Learning.
+O projeto implementa diferentes etapas de um pipeline de dados, incluindo ingestão, armazenamento em Data Lake, processamento distribuído com Apache Spark, arquitetura em camadas, Data Warehouse e transformação analítica com dbt.
+
+O objetivo é aplicar, na prática, conceitos e tecnologias utilizadas em ambientes modernos de Engenharia de Dados.
 
 ---
 
-## 🏗 Arquitetura
+## 🏗️ Arquitetura
 
-Em desenvolvimento...
+Fluxo implementado até o momento:
+
+ERP Simulado
+    ↓
+Python
+    ↓
+Google Cloud Storage
+    ↓
+Databricks / Apache Spark
+    ↓
+Bronze
+    ↓
+Silver
+    ↓
+BigQuery
+    ↓
+dbt
+    ↓
+Staging
+    ↓
+Data Marts
+    ├── dim_data
+    └── fato_vendas
+
+### Camadas
+
+**Ingestion**
+- Geração de dados simulando uma origem ERP.
+- Ingestão utilizando Python.
+- Armazenamento dos dados no Google Cloud Storage.
+
+**Processing**
+- Processamento utilizando Apache Spark no Databricks.
+- Persistência utilizando Delta Lake.
+- Organização dos dados utilizando arquitetura Bronze e Silver.
+
+**Data Warehouse**
+- Disponibilização dos dados tratados no BigQuery.
+
+**Transformation**
+- Transformações analíticas utilizando dbt.
+- Criação da camada de staging.
+- Modelagem dimensional.
+- Criação de dimensão e tabela fato.
+- Implementação de modelo incremental.
+
+**Data Quality**
+- Testes automatizados com dbt.
+- Validação de valores nulos e unicidade.
+- Documentação e lineage das transformações.
 
 ---
 
 ## 🚀 Stack Tecnológica
 
+### Implementado
+
 - Python
 - Google Cloud Platform (GCP)
-- Cloud Storage
+- Google Cloud Storage
 - Apache Spark
 - Databricks
 - Delta Lake
 - BigQuery
 - dbt
+- Git / GitHub
+
+### Próximas etapas
+
 - Apache Airflow
 - Docker
-- GitHub
+- Orquestração do pipeline
+- Expansão da camada Gold
+- Novas regras de Data Quality
 
 ---
 
-## 📌 Objetivos
+## 📂 Estrutura do Projeto
 
-- Construção de Data Lake
-- Processamento distribuído
-- Arquitetura Bronze / Silver / Gold
-- Analytics
-- Data Quality
-- Orquestração
-- Engenharia de Dados em ambiente corporativo
-
----
-
-## Status
-
-🚧 Em desenvolvimento
+```text
+novamarket-data-platform/
+│
+├── ingestion/
+│   └── erp/
+│       ├── erp_simulator/
+│       └── upload_to_gcs.py
+│
+├── dbt/
+│   └── novamarket/
+│       └── models/
+│           ├── staging/
+│           │   ├── sources.yml
+│           │   └── stg_vendas.sql
+│           │
+│           └── marts/
+│               ├── dim_data.sql
+│               ├── fato_vendas.sql
+│               └── schema.yml
+│
+├── requirements.txt
+└── README.md

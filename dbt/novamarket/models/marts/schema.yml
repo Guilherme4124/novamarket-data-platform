@@ -1,21 +1,29 @@
-version: 2
-
 models:
+
   - name: fato_vendas
-    description: "Tabela fato contendo os eventos de vendas da NovaMarket."
+    description: "Tabela fato contendo as vendas da NovaMarket."
 
     columns:
       - name: id_venda
         tests:
           - not_null
+          - unique
 
       - name: id_cliente
         tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_cliente')
+                field: id_cliente
 
       - name: id_produto
         tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_produto')
+                field: id_produto
 
       - name: quantidade
         tests:
@@ -25,8 +33,33 @@ models:
         tests:
           - not_null
 
+      - name: data_venda
+        tests:
+          - not_null
+
+
+  - name: dim_cliente
+    description: "Dimensão de clientes."
+
+    columns:
+      - name: id_cliente
+        tests:
+          - not_null
+          - unique
+
+
+  - name: dim_produto
+    description: "Dimensão de produtos."
+
+    columns:
+      - name: id_produto
+        tests:
+          - not_null
+          - unique
+
+
   - name: dim_data
-    description: "Dimensão de datas derivada das vendas."
+    description: "Dimensão de datas."
 
     columns:
       - name: data_venda

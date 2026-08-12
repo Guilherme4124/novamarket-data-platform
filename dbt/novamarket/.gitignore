@@ -21,3 +21,33 @@ dbt_packages/
 # Windows
 Thumbs.db
 Desktop.ini
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# dbt
+target/
+logs/
+dbt_packages/
+profiles.yml
+
+# Airflow
+airflow.db
+airflow.db-shm
+airflow.db-wal
+simple_auth_manager_passwords.json.generated
+
+# Credenciais
+.env
+.env.*
+*.pem
+*.key
+*credentials*.json
+*service-account*.json
+
+# Sistema / IDE
+.DS_Store
+.vscode/

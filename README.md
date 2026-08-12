@@ -1,295 +1,310 @@
-# NovaMarket Data Platform
+# 🛒 NovaMarket Data Platform
 
-Projeto de Engenharia de Dados desenvolvido para simular uma arquitetura moderna de processamento e transformação de dados de vendas, utilizando conceitos de Data Lake, processamento distribuído, modelagem analítica, qualidade de dados e orquestração.
+Pipeline de Engenharia de Dados criado para simular o processamento de vendas de uma empresa fictícia, desde a ingestão dos dados até a construção de um modelo dimensional para análise.
 
-O objetivo do projeto é construir um pipeline de dados próximo de um cenário real, partindo da ingestão de dados de um ERP simulado até a disponibilização de dados estruturados para consumo analítico.
+A ideia do projeto foi sair um pouco do cenário de scripts isolados e montar uma arquitetura mais próxima do que encontramos em projetos reais de dados, separando ingestão, armazenamento, processamento, transformação, qualidade e orquestração.
 
----
+## 🏗️ Arquitetura
 
-## Arquitetura
-
-O pipeline foi estruturado utilizando diferentes ferramentas para cada responsabilidade:
-
-- **Python** — geração e ingestão dos dados
-- **Cloud Storage / Data Lake** — armazenamento dos dados
-- **Databricks + Apache Spark** — processamento distribuído
-- **BigQuery** — armazenamento analítico
-- **dbt** — transformação, modelagem e testes de qualidade
-- **Apache Airflow** — orquestração do pipeline
-
-Fluxo simplificado:
+O fluxo do projeto ficou assim:
 
 ```text
-ERP Simulator
-      |
-      v
-Data Lake / Raw
-      |
-      v
-Databricks
-Apache Spark
-      |
-      v
-Camada Silver
-      |
-      v
-BigQuery
-      |
-      v
-dbt
-      |
-      v
+ERP / Dados de Vendas
+        │
+        ▼
+     Python
+     Ingestão
+        │
+        ▼
+Google Cloud Storage
+       RAW
+        │
+        ▼
+Databricks + PySpark
+        │
+        ▼
+      SILVER
+        │
+        ▼
+     BigQuery
+        │
+        ▼
+       dbt
+        │
+        ▼
 Modelo Dimensional
-      |
-      +---- dim_cliente
-      +---- dim_produto
-      +---- dim_data
-      +---- fato_vendas
-
-Apache Airflow
-      |
-      +---- ingestao
-      |
-      +---- processamento_spark
-      |
-      +---- transformacao_dbt
 ```
 
----
-
-## Data Lake
-
-Os dados gerados pelo ERP simulado são armazenados inicialmente na camada de dados brutos, preservando os dados antes das transformações.
-
-Essa separação permite manter os dados originais disponíveis para reprocessamento e auditoria do pipeline.
-
-### Evidência do armazenamento
-
-![Data Lake](docs/evidencias/01_storage_raw.png)
-
----
-
-## Processamento com Apache Spark
-
-O processamento distribuído foi implementado utilizando **Apache Spark no Databricks**.
-
-O Spark é responsável pela leitura dos dados ingeridos e pela aplicação das transformações necessárias antes da disponibilização dos dados para as etapas analíticas.
-
-O processamento também foi configurado como um **Databricks Job**, permitindo que o notebook de processamento seja executado como uma carga independente.
-
-### Execução do processamento Spark
-
-![Databricks Spark](docs/evidencias/02_databricks_spark.png)
-
-### Databricks Job
-
-![Databricks Job](docs/evidencias/03_databricks_job_success.png)
-
----
-
-## Data Warehouse — BigQuery
-
-Após o processamento, os dados são disponibilizados no **Google BigQuery**, utilizado como camada analítica da plataforma.
-
-Sobre essa camada são executadas as transformações do dbt responsáveis pela construção do modelo dimensional.
-
-### Modelo analítico
-
-O modelo final contém:
+Para a parte de orquestração, utilizei Apache Airflow:
 
 ```text
-dim_cliente
-dim_produto
-dim_data
-fato_vendas
+ingestao
+    │
+    ▼
+processamento_spark
+    │
+    ▼
+transformacao_dbt
 ```
 
-A tabela `fato_vendas` concentra as métricas do processo de vendas, enquanto as dimensões fornecem os contextos necessários para análise.
+## 🧰 Tecnologias utilizadas
 
-### Evidência no BigQuery
+| Tecnologia | Uso no projeto |
+|---|---|
+| 🐍 Python | Ingestão e tratamento de dados |
+| ☁️ Google Cloud Storage | Data Lake |
+| ⚡ Apache Spark | Processamento distribuído |
+| 🧱 Databricks | Execução do processamento Spark |
+| 🔎 BigQuery | Data Warehouse |
+| 🔧 dbt | Transformações, modelagem e testes |
+| 🌬️ Apache Airflow | Orquestração |
+| 🗃️ SQL | Transformações e regras de negócio |
+| 🐙 GitHub | Versionamento |
 
-![BigQuery](docs/evidencias/04_bigquery_modelo.png)
+## 📥 Ingestão e Data Lake
 
----
+O pipeline começa com dados de vendas simulando uma origem operacional/ERP.
 
-## Transformações com dbt
+Os arquivos são enviados para o **Google Cloud Storage**, que funciona como Data Lake do projeto.
 
-O **dbt** foi utilizado para organizar as transformações SQL e construir a camada analítica do projeto.
-
-A estrutura foi separada em modelos de staging e marts.
+A ideia é manter os dados brutos separados das transformações:
 
 ```text
-dbt/novamarket/
-|
-+-- models/
-|   |
-|   +-- staging/
-|   |
-|   +-- marts/
-|       +-- dim_cliente.sql
-|       +-- dim_produto.sql
-|       +-- dim_data.sql
-|       +-- fato_vendas.sql
-|
-+-- tests/
-    +-- valor_total_consistente.sql
+Origem → Ingestão → RAW → Processamento → SILVER
 ```
 
-Essa organização separa a preparação dos dados da camada destinada ao consumo analítico.
+Isso permite preservar o dado recebido da origem e facilita possíveis reprocessamentos.
 
----
+## ⚡ Processamento com Spark
 
-## Qualidade de Dados
+Para o processamento utilizei **PySpark no Databricks**.
 
-Foram implementados testes utilizando dbt para validar regras importantes do modelo.
+O Spark fica responsável pelas transformações da camada de processamento antes dos dados seguirem para a parte analítica.
 
-Entre as validações estão:
+Além do notebook, configurei o processamento como um **Databricks Job**.
 
-- valores obrigatórios (`not_null`);
-- unicidade de identificadores (`unique`);
-- integridade entre fato e dimensões (`relationships`);
-- consistência dos valores calculados.
-
-Também foi criado um teste SQL customizado para validar a consistência do valor total das vendas.
-
-Exemplo da regra:
+Com isso, o processamento deixa de depender de executar manualmente uma célula do notebook e passa a existir como uma carga que pode ser disparada por outras ferramentas.
 
 ```text
-valor_total = quantidade * valor_unitario
+RAW
+ │
+ ▼
+PySpark
+ │
+ ├── leitura
+ ├── tratamento
+ ├── transformação
+ └── validação
+ │
+ ▼
+SILVER
 ```
 
-### Execução dos testes
+## 🏢 BigQuery + Modelo Dimensional
 
-![dbt Tests](docs/evidencias/05_dbt_tests.png)
+O **BigQuery** foi utilizado como Data Warehouse.
 
----
+Na camada analítica, construí um modelo dimensional simples de vendas:
 
-## Orquestração com Apache Airflow
+```text
+                 dim_cliente
+                      │
+                      │
+dim_produto ───── fato_vendas ───── dim_data
+```
 
-O Apache Airflow foi configurado localmente utilizando WSL2 para representar a camada de orquestração da plataforma.
+A `fato_vendas` concentra os eventos e métricas das vendas, enquanto as dimensões representam os contextos utilizados nas análises.
 
-Foi criada a DAG:
+## 🔧 Transformações com dbt
+
+Uma das partes que mais quis explorar neste projeto foi o **dbt**.
+
+Separei os modelos em duas camadas principais:
+
+```text
+models/
+│
+├── staging/
+│
+└── marts/
+    ├── dim_cliente.sql
+    ├── dim_produto.sql
+    ├── dim_data.sql
+    └── fato_vendas.sql
+```
+
+A ideia foi não misturar preparação dos dados com o modelo que será utilizado para consumo.
+
+Também utilizei materialização **incremental** na tabela fato para evitar processar todo o histórico em cada execução.
+
+## 🔄 Carga incremental
+
+Em vez de reconstruir toda a `fato_vendas` sempre que chegam dados novos, o modelo trabalha de forma incremental.
+
+O fluxo fica aproximadamente assim:
+
+```text
+Novos dados
+    │
+    ▼
+Janela incremental
+    │
+    ▼
+   MERGE
+   /   \
+  /     \
+UPDATE  INSERT
+```
+
+Também considerei uma janela de dados recentes para permitir o tratamento de registros que possam chegar com atraso.
+
+Foi uma parte interessante do projeto porque me fez pensar não só em **"como transformar os dados"**, mas também em **como evitar processamento desnecessário**.
+
+## 🧪 Qualidade dos dados
+
+Também adicionei testes com dbt.
+
+Foram utilizados testes como:
+
+- `not_null`
+- `unique`
+- `relationships`
+
+Além deles, criei uma validação própria para uma regra de negócio:
+
+```text
+valor_total = quantidade × valor_unitario
+```
+
+Os testes de relacionamento foram especialmente úteis para validar se os IDs existentes na fato também estavam presentes nas respectivas dimensões.
+
+Ou seja, além de transformar os dados, o pipeline também verifica se o modelo continua consistente.
+
+## 🌬️ Orquestração com Airflow
+
+Para estudar orquestração, configurei o **Apache Airflow utilizando WSL2**.
+
+A DAG principal do projeto é:
 
 ```text
 novamarket_pipeline
 ```
 
-com a seguinte sequência de dependências:
+e representa a dependência:
 
 ```text
 ingestao
-    |
-    v
+    │
+    ▼
 processamento_spark
-    |
-    v
+    │
+    ▼
 transformacao_dbt
 ```
 
-A DAG garante que uma etapa somente seja iniciada após a conclusão da etapa anterior.
+Um comportamento que consegui validar na prática foi o controle de dependências.
 
-### Airflow DAG
+Quando a task responsável pelo Spark falhou, a etapa seguinte ficou como:
 
-![Airflow DAG](docs/evidencias/06_airflow_dag.png)
+```text
+upstream_failed
+```
 
----
+Ou seja, o Airflow não deixou uma transformação dependente continuar depois de uma falha anterior.
 
-## Integração Airflow + Databricks
+Parece simples vendo o desenho pronto, mas foi uma das partes legais de ver funcionando na prática.
 
-A integração com o Databricks foi implementada utilizando o provider oficial do Databricks para Apache Airflow e o operador responsável por iniciar um Job existente.
+## 🔌 Airflow + Databricks
 
-O Job de processamento Spark foi configurado no Databricks e pode ser executado diretamente pela plataforma.
+Também implementei a chamada do Databricks através do Airflow utilizando o:
 
-Durante a integração do ambiente local do Airflow com o Databricks, a autenticação utilizando Personal Access Token retornou **HTTP 401 Unauthorized**.
+```python
+DatabricksRunNowOperator
+```
 
-Como parte da investigação, a autenticação OAuth foi configurada utilizando o Databricks CLI e validada com sucesso contra a Jobs API, permitindo listar e acessar o Job criado.
+A ideia da integração é:
 
-Dessa forma, o processamento Spark e o Job Databricks foram validados, enquanto a autenticação direta entre o Airflow local e o Databricks permaneceu como uma limitação do ambiente utilizado.
+```text
+Airflow
+   │
+   ▼
+Databricks Jobs API
+   │
+   ▼
+Databricks Job
+   │
+   ▼
+PySpark
+```
 
-Em um cenário produtivo, essa comunicação seria configurada utilizando uma identidade de serviço e OAuth, evitando dependência de credenciais pessoais.
+Durante os testes no ambiente local, encontrei um problema de autenticação via Personal Access Token (`HTTP 401`).
 
----
+Para isolar o problema, testei a autenticação separadamente e configurei **OAuth através do Databricks CLI**, conseguindo acessar a Jobs API e listar o Job normalmente.
 
-## Estrutura do Projeto
+Então ficou uma melhoria pendente no projeto: configurar a autenticação OAuth/Service Principal diretamente entre Airflow e Databricks.
+
+Preferi manter essa limitação documentada em vez de simplesmente esconder uma integração que não terminou 100%.
+
+## 📂 Estrutura
 
 ```text
 novamarket-data-platform/
-|
-+-- dbt/
-|   +-- novamarket/
-|       +-- models/
-|       +-- tests/
-|
-+-- ingestion/
-|   +-- erp_simulator/
-|
-+-- spark/
-|   +-- processamento_vendas.py
-|
-+-- docs/
-|   +-- evidencias/
-|
-+-- README.md
-+-- .gitignore
+│
+├── ingestion/
+│
+├── spark/
+│
+├── dbt/
+│   ├── models/
+│   │   ├── staging/
+│   │   └── marts/
+│   └── tests/
+│
+├── airflow/
+│
+├── README.md
+└── .gitignore
 ```
 
----
+## 💡 O que pratiquei nesse projeto
 
-## Tecnologias
+Mais do que aprender comandos específicos de cada ferramenta, esse projeto serviu para juntar vários conceitos que eu vinha estudando separadamente:
 
-| Tecnologia | Utilização |
-|---|---|
-| Python | Ingestão e processamento |
-| Google Cloud | Infraestrutura de dados |
-| Cloud Storage | Data Lake |
-| BigQuery | Data Warehouse |
-| Databricks | Plataforma de processamento |
-| Apache Spark | Processamento distribuído |
-| dbt | Transformação e modelagem |
-| Apache Airflow | Orquestração |
-| SQL | Transformações e regras de negócio |
-| Git / GitHub | Versionamento |
-
----
-
-## Conceitos aplicados
-
-O projeto aplica conceitos importantes de Engenharia de Dados:
-
-- Data Lake
-- Data Warehouse
-- ETL / ELT
-- processamento distribuído
+- Data Lake e Data Warehouse
 - arquitetura em camadas
+- ETL / ELT
+- PySpark
+- processamento distribuído
+- processamento incremental
+- MERGE
 - modelagem dimensional
-- tabela fato e dimensões
-- qualidade de dados
-- testes automatizados
-- orquestração de pipelines
-- dependência entre tarefas
+- fato e dimensões
+- testes de qualidade
+- integridade referencial
+- DAGs
+- dependência entre tasks
 - Jobs
+- tratamento de falhas
 - autenticação entre serviços
-- versionamento de código
+- Git e versionamento
+
+## 🚀 Próximos passos
+
+Ainda existem algumas coisas que quero evoluir futuramente:
+
+- finalizar Airflow → Databricks utilizando OAuth/Service Principal;
+- executar o dbt diretamente pelo Airflow;
+- adicionar Docker;
+- implementar CI/CD;
+- adicionar monitoramento e alertas;
+- testar o pipeline com volumes maiores.
 
 ---
 
-## Melhorias Futuras
+### 📌 Sobre o projeto
 
-Algumas evoluções planejadas para o projeto:
+O NovaMarket nasceu como um projeto de estudo para colocar em prática uma arquitetura de Engenharia de Dados de ponta a ponta.
 
-- autenticação Airflow → Databricks utilizando Service Principal/OAuth;
-- execução do dbt diretamente pela DAG;
-- containerização do Airflow com Docker;
-- CI/CD;
-- monitoramento e alertas;
-- parametrização das execuções;
-- processamento incremental;
-- maior volume de dados para testes de performance.
+Mais do que simplesmente utilizar várias ferramentas no mesmo repositório, meu objetivo foi entender **qual responsabilidade cada tecnologia deveria ter dentro do pipeline** e como elas se conectam.
 
----
-
-## Objetivo
-
-Este projeto foi desenvolvido como parte dos meus estudos em Engenharia de Dados, com foco em aplicar ferramentas utilizadas em ambientes modernos de dados e compreender não apenas cada tecnologia isoladamente, mas como elas se integram dentro de uma plataforma de dados.
-
-O foco principal foi trabalhar conceitos de arquitetura, processamento distribuído, transformação, qualidade e orquestração de dados em um único projeto.
+Algumas coisas funcionaram de primeira, outras quebraram — principalmente integrações e autenticação — e justamente essas falhas acabaram fazendo parte do aprendizado do projeto. 😅
